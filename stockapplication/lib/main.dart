@@ -29,12 +29,17 @@ class MyApp extends StatelessWidget {
   // Create GraphQL client with Hive cache
   final ValueNotifier<GraphQLClient> client = ValueNotifier(
     GraphQLClient(
-      link: HttpLink('http://192.168.40.86/q/graphql-ui/'), // Replace with your GraphQL endpoint
-      cache: GraphQLCache(
-        store: HiveStore(),
+      link: HttpLink(
+        'http://192.168.40.86/graphql/',
+        defaultHeaders: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
       ),
+      cache: GraphQLCache(store: HiveStore()),
     ),
   );
+
 
   @override
   Widget build(BuildContext context) {

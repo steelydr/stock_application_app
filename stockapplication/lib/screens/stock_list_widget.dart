@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/stock_service.dart';
 import '../screens/stock_details_page.dart';
 class StockList extends StatefulWidget {
+  final Map<String, dynamic>? userData;
+
   final List<Stock> stocks;
   final Future<void> Function() onRefresh; // Callback for refreshing data
 
@@ -9,6 +11,7 @@ class StockList extends StatefulWidget {
     Key? key,
     required this.stocks,
     required this.onRefresh,
+    required this.userData,
   }) : super(key: key);
 
   @override
@@ -143,6 +146,7 @@ class _StockListState extends State<StockList> {
                     MaterialPageRoute(
                       builder: (context) => StockDetailPage(
                         symbol: stock.symbol ?? '',
+                        userData: widget.userData,
                       ),
                     ),
                   );

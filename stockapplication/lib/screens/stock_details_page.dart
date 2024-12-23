@@ -1,109 +1,95 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/stock_detail_model.dart';
+import '../widgets/historical_data_section.dart';
+import '../widgets/ticker_details_section.dart';
+import '../widgets/play_game.dart'; // Import the PlayGame widget
+
 
 class StockDetailPage extends StatelessWidget {
   final String symbol;
+  final Map<String, dynamic>? userData;
 
   const StockDetailPage({
     Key? key,
     required this.symbol,
+    required this.userData,
   }) : super(key: key);
 
-  // Define the GraphQL query
-  static const String getTickerDetailsQuery = r'''
-    query getTickerDetails($symbol: String!) {
-      getTickerDetails(symbol: $symbol) {
-        previousClose
-        openPrice
-      }
+  bool _isMarketOpen() {
+    final now = DateTime.now().toUtc().subtract(const Duration(hours: 5));
+    final openingTime = DateTime(now.year, now.month, now.day, 9, 30);
+    final closingTime = DateTime(now.year, now.month, now.day, 16, 0);
+
+    if (now.weekday >= 1 && now.weekday <= 5) {
+      return now.isAfter(openingTime) && now.isBefore(closingTime);
+    } else {
+      return false; // Weekend
     }
-  ''';
+  }
+
+  Future<void> storeOfflineData(Map<String, dynamic> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('stockDetail_$symbol', jsonEncode(data));
+    await prefs.setString('stockDetail_${symbol}_timestamp', DateTime.now().toIso8601String());
+  }
+
+  Future<Map<String, dynamic>?> getOfflineData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString('stockDetail_$symbol');
+    if (jsonString != null) {
+      return jsonDecode(jsonString) as Map<String, dynamic>;
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final numberFormat = NumberFormat.currency(locale: 'en_US', symbol: '\$');
-
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Stock Detail'),
+        title: Text(
+          symbol.toUpperCase(),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: Query(
-        options: QueryOptions(
-          document: gql(getTickerDetailsQuery),
-          variables: {'symbol': symbol},
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue, Colors.purpleAccent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-        builder: (QueryResult result, {fetchMore, refetch}) {
-          // Handle loading state
-          if (result.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        child: SafeArea(
+          top: true,
+          child: FutureBuilder<Map<String, dynamic>?>(
+            future: getOfflineData(),
+            builder: (context, snapshot) {
+              final offlineData = snapshot.data;
 
-          // Handle errors
-          if (result.hasException) {
-            return Center(
-              child: Text(
-                'Error: ${result.exception.toString()}',
-                style: const TextStyle(color: Colors.red),
-              ),
-            );
-          }
-
-          // Extract data
-          final stockData = result.data?['getTickerDetails'];
-
-          if (stockData == null) {
-            return const Center(
-              child: Text(
-                'No Data Available',
-                style: TextStyle(fontSize: 18),
-              ),
-            );
-          }
-
-          // Safely parse numeric values
-          final previousClose = double.tryParse(stockData['previousClose']?.toString() ?? '') ?? 0.0;
-          final openPrice = double.tryParse(stockData['openPrice']?.toString() ?? '') ?? 0.0;
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              await refetch?.call();
+              return TickerDetailsSection(
+                symbol: symbol,
+                offlineData: offlineData,
+                isMarketOpen: _isMarketOpen,
+                storeOfflineData: storeOfflineData,
+                playGameWidget: PlayGame(symbol: symbol, userData: userData),
+                historicalDataWidget: HistoricalDataSection(symbol: symbol),
+              );
             },
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                const SizedBox(height: 30),
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Symbol: $symbol',
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Previous Close: ${numberFormat.format(previousClose)}',
-                        style: const TextStyle(fontSize: 22),
-                      ),
-                      Text(
-                        'Open Price: ${numberFormat.format(openPrice)}',
-                        style: const TextStyle(fontSize: 22),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

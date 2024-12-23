@@ -5,6 +5,9 @@ import 'dart:convert';
 import 'stock_list_widget.dart';
 
 class TabsSection extends StatefulWidget {
+  final Map<String, dynamic>? userData;
+
+  const TabsSection({Key? key, this.userData}) : super(key: key);
   @override
   _TabsSectionState createState() => _TabsSectionState();
 }
@@ -22,7 +25,7 @@ class _TabsSectionState extends State<TabsSection>
   static const String _timestampKey = 'stockData_timestamp';
 
   // Market hours constants (assuming US Eastern Time)
-  static const int marketOpenHour = 9;  // 9:30 AM ET
+  static const int marketOpenHour = 9; // 9:30 AM ET
   static const int marketCloseHour = 16; // 4:00 PM ET
 
   @override
@@ -97,7 +100,8 @@ class _TabsSectionState extends State<TabsSection>
     }
 
     // Skip weekends
-    while (nextOpen.weekday == DateTime.saturday || nextOpen.weekday == DateTime.sunday) {
+    while (nextOpen.weekday == DateTime.saturday ||
+        nextOpen.weekday == DateTime.sunday) {
       nextOpen = nextOpen.add(const Duration(days: 1));
     }
 
@@ -272,18 +276,22 @@ class _TabsSectionState extends State<TabsSection>
         StockList(
           stocks: stockData!['Most Active'] ?? [],
           onRefresh: _loadStockData,
+          userData: widget.userData, // Pass userData here
         ),
         StockList(
           stocks: stockData!['Trending'] ?? [],
           onRefresh: _loadStockData,
+          userData: widget.userData, // Pass userData here
         ),
         StockList(
           stocks: stockData!['Gainers'] ?? [],
           onRefresh: _loadStockData,
+          userData: widget.userData, // Pass userData here
         ),
         StockList(
           stocks: stockData!['Losers'] ?? [],
           onRefresh: _loadStockData,
+          userData: widget.userData, // Pass userData here
         ),
       ],
     );

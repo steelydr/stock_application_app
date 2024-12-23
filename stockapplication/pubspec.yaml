@@ -48,10 +48,15 @@ dependencies:
   dart_json_mapper: ^2.0.1
   json_annotation: ^4.8.0
   redis: ^3.1.0
+  logger: ^1.2.0
   graphql_flutter: ^5.1.0
   graphql: ^5.1.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+  intl: ^0.17.0
+  fl_chart: ^0.69.2
+  charts_flutter: ^0.12.0
+  syncfusion_flutter_charts: ^20.2.48
 
 
 dev_dependencies:

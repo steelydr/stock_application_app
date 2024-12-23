@@ -4,6 +4,7 @@ import '../pages/home_page.dart';
 import '../pages/search_page.dart';
 import '../pages/chat_page.dart';
 import '../services/user_service.dart';
+import '../widgets/chat_list_page.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -35,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return SearchPage();
       case 2:
-        return ChatPage();
+        return ChatListPage(userData: userData);
       default:
         return Container();
     }

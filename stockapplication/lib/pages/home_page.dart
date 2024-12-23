@@ -51,7 +51,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         Expanded(
-          child: TabsSection(),
+          child: TabsSection(userData: userData),
         ),
       ],
     );
