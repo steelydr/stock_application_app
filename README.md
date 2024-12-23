@@ -16,4 +16,4 @@ The app is a stock market tracking tool displaying real-time and cached stock da
 ![alt text](<Submit Prediction.png>) 
  
  
-![alt text](UserChatApplication.png)
+![alt text](UserChatTalks.png)
